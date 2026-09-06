@@ -353,7 +353,7 @@
 <div class="page">
   <div class="ticket">
     <header class="marquee">
-      <h1>Cuatro niveles, un mensaje</h1>
+      <h1 id="titleTap">Cuatro niveles, un mensaje</h1>
       <p class="lead">Pasa los cuatro juegos. Al final del último te espera algo que traigo pensado hace rato.</p>
       <div class="dots" id="dots">
         <span class="dot" data-i="1"></span>
@@ -804,6 +804,26 @@
 
     render();
   }
+
+  // Hidden shortcut: tap the title 5 times quickly to jump straight to the
+  // final reveal. Just for previewing/testing — she'd never stumble into it
+  // by accident.
+  (function setupSecretSkip(){
+    const titleEl = document.getElementById('titleTap');
+    if (!titleEl) return;
+    let taps = 0;
+    let resetTimer = null;
+    titleEl.style.cursor = 'pointer';
+    titleEl.addEventListener('click', () => {
+      taps++;
+      clearTimeout(resetTimer);
+      resetTimer = setTimeout(() => { taps = 0; }, 1500);
+      if (taps >= 5){
+        taps = 0;
+        cutTo(() => renderFinalReveal(), 400);
+      }
+    });
+  })();
 
   cutTo(() => renderLevel(1), 260);
 })();
