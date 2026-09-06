@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cuatro niveles, un mensaje</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #241726;
+    --bg-deep: #1a1120;
+    --panel: #34213c;
+    --panel-light: #3f2848;
+    --gold: #e7b750;
+    --rose: #f2879c;
+    --sky: #8fc7d6;
+    --violet: #b79ef0;
+    --text: #f7eee7;
+    --text-muted: #cdb9c6;
+    --radius-outer: 30px;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    min-height: 100%;
+    background: radial-gradient(circle at 50% -10%, #3a2440 0%, var(--bg) 55%, var(--bg-deep) 100%);
+    color: var(--text);
+    font-family: 'Space Grotesk', sans-serif;
+  }
+
+  body {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 32px 16px 64px;
+    min-height: 100vh;
+  }
+
+  .page {
+    width: 100%;
+    max-width: 440px;
+  }
+
+  h1, h2, h3 {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    margin: 0;
+  }
+
+  .ticket {
+    position: relative;
+    background: var(--panel);
+    border-radius: var(--radius-outer);
+    box-shadow: 0 30px 60px -25px rgba(0,0,0,0.6), 0 2px 0 rgba(255,255,255,0.03) inset;
+    overflow: visible;
+  }
+
+  .marquee {
+    padding: 34px 28px 26px;
+    text-align: left;
+  }
+
+  .marquee h1 {
+    font-size: 1.7rem;
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+  }
+
+  .marquee .lead {
+    margin: 12px 0 0;
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    line-height: 1.5;
+    max-width: 34ch;
+  }
+
+  .dots {
+    display: flex;
+    gap: 10px;
+    margin-top: 22px;
+  }
+
+  .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.14);
+    transition: background 0.4s ease, transform 0.4s ease;
+  }
+
+  .dot.current {
+    background: var(--gold);
+    transform: scale(1.25);
+  }
+
+  .dot.done {
+    background: var(--rose);
+  }
+
+  /* the perforated tear line between marquee and stage */
+  .perforation {
+    position: relative;
+    height: 0;
+    border-top: 2px dashed rgba(255,255,255,0.16);
+    margin: 0 22px;
+  }
+
+  .perforation::before,
+  .perforation::after {
+    content: "";
+    position: absolute;
+    top: -14px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, #3a2440, var(--bg-deep));
+  }
+
+  .perforation::before { left: -36px; }
+  .perforation::after { right: -36px; }
+
+  .stage {
+    padding: 26px 28px 34px;
+    min-height: 320px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .stage-label {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-bottom: 14px;
+  }
+
+  .stage-title {
+    font-size: 1.15rem;
+    margin-bottom: 6px;
+  }
+
+  .stage-hint {
+    color: var(--text-muted);
+    font-size: 0.88rem;
+    margin: 0 0 20px;
+    line-height: 1.5;
+  }
+
+  .game-area {
+    animation: rise 0.5s ease both;
+  }
+
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ---- memory game ---- */
+  .memo-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+  }
+
+  .memo-card {
+    aspect-ratio: 1 / 1;
+    border-radius: 14px;
+    background: var(--panel-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    cursor: pointer;
+    user-select: none;
+    transition: transform 0.25s ease, background 0.25s ease;
+    transform-style: preserve-3d;
+  }
+
+  .memo-card.flipped, .memo-card.matched {
+    background: var(--rose);
+    color: var(--bg-deep);
+  }
+
+  .memo-card.matched {
+    opacity: 0.55;
+    cursor: default;
+  }
+
+  /* ---- simon game ---- */
+  .simon-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .simon-btn {
+    height: 84px;
+    border: none;
+    border-radius: 18px;
+    cursor: pointer;
+    opacity: 0.55;
+    transition: opacity 0.15s ease, transform 0.15s ease;
+  }
+
+  .simon-btn.lit {
+    opacity: 1;
+    transform: scale(0.97);
+  }
+
+  .simon-status {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+  }
+
+  /* ---- reflex game ---- */
+  .reflex-area {
+    position: relative;
+    height: 220px;
+    background: var(--panel-light);
+    border-radius: 18px;
+    overflow: hidden;
+    margin-bottom: 14px;
+  }
+
+  .reflex-target {
+    position: absolute;
+    width: 46px;
+    height: 46px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    cursor: pointer;
+    border: none;
+    background: transparent;
+  }
+
+  .reflex-status {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+  }
+
+  /* ---- unscramble game ---- */
+  .answer-row, .pool-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    min-height: 52px;
+  }
+
+  .answer-row {
+    padding: 10px;
+    background: var(--panel-light);
+    border-radius: 14px;
+    margin-bottom: 14px;
+  }
+
+  .tile {
+    width: 40px;
+    height: 44px;
+    border-radius: 10px;
+    border: none;
+    background: var(--gold);
+    color: var(--bg-deep);
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    font-size: 1.05rem;
+    cursor: pointer;
+  }
+
+  .tile.placeholder {
+    background: transparent;
+    border: 1.5px dashed rgba(255,255,255,0.2);
+    color: transparent;
+  }
+
+  .tile.used {
+    visibility: hidden;
+  }
+
+  .link-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    text-decoration: underline;
+    font-family: inherit;
+    font-size: 0.82rem;
+    cursor: pointer;
+    padding: 0;
+    margin-top: 4px;
+    align-self: flex-start;
+  }
+
+  /* ---- phrase / transition screen ---- */
+  .phrase-screen {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    flex: 1;
+    animation: rise 0.6s ease both;
+    text-align: left;
+  }
+
+  .phrase-mark {
+    color: var(--gold);
+    font-family: 'Fraunces', serif;
+    font-size: 2.4rem;
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+
+  .phrase-text {
+    font-family: 'Fraunces', serif;
+    font-size: 1.3rem;
+    line-height: 1.5;
+    color: var(--text);
+  }
+
+  .phrase-final .phrase-text {
+    font-size: 1.32rem;
+  }
+
+  .continue-btn {
+    margin-top: 26px;
+    align-self: flex-start;
+    background: var(--rose);
+    color: var(--bg-deep);
+    border: none;
+    padding: 12px 22px;
+    border-radius: 999px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    font-size: 0.92rem;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+  }
+
+  .continue-btn:hover { transform: translateY(-2px); }
+
+  .final-note {
+    margin-top: 24px;
+    color: var(--text-muted);
+    font-size: 0.82rem;
+  }
+
+  button:focus-visible, .memo-card:focus-visible, .tile:focus-visible {
+    outline: 2px solid var(--sky);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation-duration: 0.001s !important; transition-duration: 0.001s !important; }
+  }
+
+  @media (max-width: 380px) {
+    .marquee { padding: 28px 20px 22px; }
+    .stage { padding: 22px 20px 28px; }
+    .perforation { margin: 0 16px; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="ticket">
+    <header class="marquee">
+      <h1>Cuatro niveles, un mensaje</h1>
+      <p class="lead">Pasa los cuatro juegos. Al final del último te digo algo que traigo pensado hace rato.</p>
+      <div class="dots" id="dots">
+        <span class="dot" data-i="1"></span>
+        <span class="dot" data-i="2"></span>
+        <span class="dot" data-i="3"></span>
+        <span class="dot" data-i="4"></span>
+      </div>
+    </header>
+    <div class="perforation"></div>
+    <main class="stage" id="stage"></main>
+  </div>
+</div>
+
+<script>
+(function(){
+  const stage = document.getElementById('stage');
+  const dots = [...document.querySelectorAll('.dot')];
+  const NTFY_TOPIC = 'Alerta-Aldair-Frappes-928471';
+
+  const phrases = {
+    1: "No tuve que comparar nada: entre todas las combinaciones posibles, la única que tenía sentido eras tú, tal cual eres.",
+    2: "Sé seguir un patrón cuando quiero, pero contigo decidí salirme del molde: con tus contradicciones y todo, elegí quedarme.",
+    3: "No fue un impulso ni un golpe de suerte. Entre lo fácil y lo real, elegí lo real. Elegí quedarme, defectos incluidos.",
+  };
+
+  const finalPhrase = "Esta era la sorpresa: entre todas las personas que pude elegir, te elegí a ti. No a una versión perfecta, sino a la de verdad, con tus días difíciles, tus mañas, y esa forma tuya de complicarlo todo a veces. Esa fue mi decisión. Y la tomaría otra vez sin pensarlo.";
+
+  function updateDots(level, completedUpTo){
+    dots.forEach((d, i) => {
+      const n = i + 1;
+      d.classList.toggle('done', n <= completedUpTo);
+      d.classList.toggle('current', n === level);
+    });
+  }
+
+  function notifyPhone(){
+    try {
+      fetch('https://ntfy.sh/' + NTFY_TOPIC, {
+        method: 'POST',
+        headers: {
+          'Title': 'Terminó los 4 niveles',
+          'Priority': 'min',
+          'Tags': 'sparkles'
+        },
+        body: 'Vio el mensaje final. Misión cumplida.'
+      }).catch(function(){});
+    } catch (e) { /* fail silently, this is a background touch only */ }
+  }
+
+  function renderPhraseScreen(level, text, isFinal){
+    updateDots(level, level);
+    stage.innerHTML = '';
+    const wrap = document.createElement('div');
+    wrap.className = 'phrase-screen' + (isFinal ? ' phrase-final' : '');
+    const mark = document.createElement('div');
+    mark.className = 'phrase-mark';
+    mark.textContent = '“';
+    const p = document.createElement('p');
+    p.className = 'phrase-text';
+    p.textContent = text;
+    wrap.appendChild(mark);
+    wrap.appendChild(p);
+
+    if (!isFinal){
+      const btn = document.createElement('button');
+      btn.className = 'continue-btn';
+      btn.textContent = 'Siguiente nivel';
+      btn.addEventListener('click', function(){ renderLevel(level + 1); });
+      wrap.appendChild(btn);
+    } else {
+      notifyPhone();
+      const note = document.createElement('p');
+      note.className = 'final-note';
+      note.textContent = 'Fin del juego.';
+      wrap.appendChild(note);
+    }
+    stage.appendChild(wrap);
+  }
+
+  function renderLevel(level){
+    updateDots(level, level - 1);
+    if (level === 1) return renderMemoria();
+    if (level === 2) return renderSimon();
+    if (level === 3) return renderReflejos();
+    if (level === 4) return renderOrdena();
+  }
+
+  function stageHeader(labelNum, title, hint){
+    stage.innerHTML = '';
+    const label = document.createElement('p');
+    label.className = 'stage-label';
+    label.textContent = 'Nivel ' + labelNum + ' de 4';
+    const h = document.createElement('h2');
+    h.className = 'stage-title';
+    h.textContent = title;
+    const hintEl = document.createElement('p');
+    hintEl.className = 'stage-hint';
+    hintEl.textContent = hint;
+    stage.appendChild(label);
+    stage.appendChild(h);
+    stage.appendChild(hintEl);
+  }
+
+  /* ---------- Level 1: Memoria ---------- */
+  function renderMemoria(){
+    stageHeader(1, 'Memoria', 'Encuentra las 6 parejas. Toca dos cartas para revelarlas.');
+    const symbols = ['🎧','🍩','🌙','⭐','🍕','🎲'];
+    let deck = symbols.concat(symbols)
+      .map(s => ({ s, id: Math.random() }))
+      .sort(() => Math.random() - 0.5);
+
+    const grid = document.createElement('div');
+    grid.className = 'memo-grid game-area';
+    stage.appendChild(grid);
+
+    let flipped = [];
+    let matchedCount = 0;
+    let lock = false;
+
+    deck.forEach((item) => {
+      const card = document.createElement('button');
+      card.className = 'memo-card';
+      card.setAttribute('aria-label', 'carta');
+      card.dataset.symbol = item.s;
+      card.textContent = '';
+      card.addEventListener('click', () => {
+        if (lock || card.classList.contains('matched') || card.classList.contains('flipped')) return;
+        card.classList.add('flipped');
+        card.textContent = item.s;
+        flipped.push(card);
+
+        if (flipped.length === 2){
+          lock = true;
+          const [a, b] = flipped;
+          if (a.dataset.symbol === b.dataset.symbol){
+            a.classList.add('matched');
+            b.classList.add('matched');
+            flipped = [];
+            lock = false;
+            matchedCount++;
+            if (matchedCount === symbols.length){
+              setTimeout(() => renderPhraseScreen(1, phrases[1], false), 400);
+            }
+          } else {
+            setTimeout(() => {
+              a.classList.remove('flipped');
+              b.classList.remove('flipped');
+              a.textContent = '';
+              b.textContent = '';
+              flipped = [];
+              lock = false;
+            }, 700);
+          }
+        }
+      });
+      grid.appendChild(card);
+    });
+  }
+
+  /* ---------- Level 2: Simon dice ---------- */
+  function renderSimon(){
+    stageHeader(2, 'Simón dice', 'Mira la secuencia de colores y repítela tocando en el mismo orden. Llega a una secuencia de 5.');
+    const colors = [
+      { key: 'a', color: 'var(--rose)' },
+      { key: 'b', color: 'var(--gold)' },
+      { key: 'c', color: 'var(--sky)' },
+      { key: 'd', color: 'var(--violet)' },
+    ];
+
+    const grid = document.createElement('div');
+    grid.className = 'simon-grid game-area';
+    const status = document.createElement('p');
+    status.className = 'simon-status';
+    status.textContent = 'Observa...';
+
+    const buttons = {};
+    colors.forEach(c => {
+      const b = document.createElement('button');
+      b.className = 'simon-btn';
+      b.style.background = c.color;
+      buttons[c.key] = b;
+      grid.appendChild(b);
+    });
+
+    stage.appendChild(grid);
+    stage.appendChild(status);
+
+    const TARGET_LEN = 5;
+    let sequence = [];
+    let playerIndex = 0;
+    let accepting = false;
+
+    function extendSequence(){
+      sequence.push(colors[Math.floor(Math.random() * colors.length)].key);
+    }
+
+    function lightUp(key){
+      return new Promise(resolve => {
+        const b = buttons[key];
+        b.classList.add('lit');
+        setTimeout(() => {
+          b.classList.remove('lit');
+          setTimeout(resolve, 180);
+        }, 380);
+      });
+    }
+
+    async function playSequence(){
+      accepting = false;
+      status.textContent = 'Observa...';
+      for (const key of sequence){
+        await lightUp(key);
+      }
+      status.textContent = 'Ahora tú (' + sequence.length + '/' + TARGET_LEN + ')';
+      playerIndex = 0;
+      accepting = true;
+    }
+
+    function startRound(){
+      extendSequence();
+      playSequence();
+    }
+
+    colors.forEach(c => {
+      buttons[c.key].addEventListener('click', () => {
+        if (!accepting) return;
+        buttons[c.key].classList.add('lit');
+        setTimeout(() => buttons[c.key].classList.remove('lit'), 150);
+
+        if (c.key === sequence[playerIndex]){
+          playerIndex++;
+          if (playerIndex === sequence.length){
+            accepting = false;
+            if (sequence.length >= TARGET_LEN){
+              status.textContent = '¡Bien!';
+              setTimeout(() => renderPhraseScreen(2, phrases[2], false), 500);
+            } else {
+              setTimeout(startRound, 600);
+            }
+          }
+        } else {
+          accepting = false;
+          status.textContent = 'Casi. Otra vez esta ronda...';
+          sequence.pop();
+          setTimeout(() => { extendSequence(); playSequence(); }, 700);
+        }
+      });
+    });
+
+    startRound();
+  }
+
+  /* ---------- Level 3: Reflejos ---------- */
+  function renderReflejos(){
+    stageHeader(3, 'Reflejos', 'Toca la estrella antes de que se esconda. Necesitas 8 aciertos.');
+    const area = document.createElement('div');
+    area.className = 'reflex-area game-area';
+    const status = document.createElement('p');
+    status.className = 'reflex-status';
+    status.textContent = 'Aciertos: 0 / 8';
+    stage.appendChild(area);
+    stage.appendChild(status);
+
+    const NEEDED = 8;
+    let hits = 0;
+    let currentTarget = null;
+    let hideTimer = null;
+    let running = true;
+
+    function spawn(){
+      if (!running) return;
+      if (currentTarget) currentTarget.remove();
+
+      const btn = document.createElement('button');
+      btn.className = 'reflex-target';
+      btn.textContent = '⭐';
+      const areaW = area.clientWidth || 260;
+      const areaH = area.clientHeight || 220;
+      const x = Math.random() * (areaW - 46);
+      const y = Math.random() * (areaH - 46);
+      btn.style.left = x + 'px';
+      btn.style.top = y + 'px';
+
+      btn.addEventListener('click', () => {
+        if (!running) return;
+        hits++;
+        status.textContent = 'Aciertos: ' + hits + ' / ' + NEEDED;
+        clearTimeout(hideTimer);
+        btn.remove();
+        currentTarget = null;
+        if (hits >= NEEDED){
+          running = false;
+          setTimeout(() => renderPhraseScreen(3, phrases[3], false), 350);
+          return;
+        }
+        setTimeout(spawn, 350);
+      });
+
+      area.appendChild(btn);
+      currentTarget = btn;
+
+      hideTimer = setTimeout(() => {
+        btn.remove();
+        currentTarget = null;
+        if (running) setTimeout(spawn, 250);
+      }, 950);
+    }
+
+    spawn();
+  }
+
+  /* ---------- Level 4: Ordena las letras ---------- */
+  function renderOrdena(){
+    stageHeader(4, 'Ordena las letras', 'Forma la palabra tocando las letras en orden. Si te equivocas, puedes borrar y volver a intentar.');
+    const word = 'SORPRESA';
+    let letters = word.split('').map((ch, i) => ({ ch, id: i }));
+    let pool = [...letters].sort(() => Math.random() - 0.5);
+    let answer = [];
+
+    const answerRow = document.createElement('div');
+    answerRow.className = 'answer-row game-area';
+    const poolRow = document.createElement('div');
+    poolRow.className = 'pool-row';
+    const clearBtn = document.createElement('button');
+    clearBtn.className = 'link-btn';
+    clearBtn.textContent = 'Borrar y reintentar';
+
+    stage.appendChild(answerRow);
+    stage.appendChild(poolRow);
+    stage.appendChild(clearBtn);
+
+    function render(){
+      answerRow.innerHTML = '';
+      word.split('').forEach((_, i) => {
+        const t = document.createElement('div');
+        if (answer[i]){
+          t.className = 'tile';
+          t.textContent = answer[i].ch;
+        } else {
+          t.className = 'tile placeholder';
+          t.textContent = '·';
+        }
+        answerRow.appendChild(t);
+      });
+
+      poolRow.innerHTML = '';
+      pool.forEach(item => {
+        const b = document.createElement('button');
+        b.className = 'tile' + (answer.includes(item) ? ' used' : '');
+        b.textContent = item.ch;
+        b.addEventListener('click', () => {
+          if (answer.includes(item) || answer.length >= word.length) return;
+          answer.push(item);
+          render();
+          checkWin();
+        });
+        poolRow.appendChild(b);
+      });
+    }
+
+    clearBtn.addEventListener('click', () => {
+      answer = [];
+      render();
+    });
+
+    function checkWin(){
+      if (answer.length !== word.length) return;
+      const formed = answer.map(a => a.ch).join('');
+      if (formed === word){
+        setTimeout(() => renderPhraseScreen(4, finalPhrase, true), 400);
+      } else {
+        setTimeout(() => { answer = []; render(); }, 700);
+      }
+    }
+
+    render();
+  }
+
+  renderLevel(1);
+})();
+</script>
+</body>
+</html>
